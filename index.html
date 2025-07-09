@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Liedjes Filter Koor Geen Gehoor</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>Upload de liedjes</h1>
+    <form id="uploadForm">
+      <label>
+        Excel Bestand:
+        <input type="file" name="file" accept=".xlsx" required />
+      </label>
+      <br />
+
+      <label>
+        Aantal liedjes in totaal:
+        <input type="number" name="total_count" min="1" required />
+      </label>
+      <br />
+
+      <label>
+        Minimum aantal Nederlandse liedjes (optioneel):
+        <input type="number" name="min_dutch" min="0" />
+      </label>
+      <br />
+
+      <label>
+        Minimum aantal Engelse liedjes (optioneel):
+        <input type="number" name="min_english" min="0" />
+      </label>
+      <br />
+
+      <label>
+        Minimum aantal Duitse liedjes (optioneel):
+        <input type="number" name="min_german" min="0" />
+      </label>
+      <br />
+
+      <label>
+        Kerstliedjes?
+        <select name="include_christmas">
+          <option value="any">Alleen maar</option>
+          <option value="yes">Ja</option>
+          <option value="no">Nee</option>
+        </select>
+      </label>
+      <br />
+
+      <label>
+        Aantal Kerstliedjes? (optioneel):
+        <input type="number" name="num_christmas" min="0" />
+      </label>
+      <br />
+
+      <label>
+        Boekjes:
+        <select id="booklet_mode" name="booklet_mode">
+          <option value="any">Maakt niet uit (random)</option>
+          <option value="only">Alleen uit een specifiek boekje</option>
+          <option value="each">
+            Specifiek aantal liedjes uit alle boekjes
+          </option>
+        </select>
+      </label>
+      <br />
+
+      <div id="booklet_only_input" style="display: none">
+        <label>
+          Nummer boekje:
+          <input type="text" name="only_booklet" placeholder="bijv. 5" />
+        </label>
+      </div>
+
+      <div id="booklet_each_input" style="display: none">
+        <label>
+          Aantal liedjes per boekje:
+          <input type="number" name="each_booklet_count" min="1" />
+        </label>
+      </div>
+      <br />
+
+      <label>
+        Deze liedjes niet meenemen (gescheiden met een komma):
+        <input
+          type="text"
+          name="exclude_numbers"
+          placeholder="bijv. 3, 15, 22"
+        />
+      </label>
+      <br />
+
+      <button type="submit">Submit</button>
+    </form>
+
+    <h2>Geselecteerde liedjes:</h2>
+    <ul id="results"></ul>
+
+    <script src="script.js"></script>
+  </body>
+</html>

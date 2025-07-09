@@ -7,10 +7,10 @@ from io import BytesIO
 
 app = FastAPI()
 
-# Allow frontend (e.g., GitHub Pages) to access
+# Allow frontend to access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Set specific domain in production!
+    allow_origins=["https://teaglas.github.io/song-selection/"],
     allow_methods=["*"],
     allow_headers=["*"],
 )

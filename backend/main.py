@@ -44,14 +44,14 @@ async def generate_songs(
     # Assume headers: Number, Title, Language, Booklet, Christmas
     songs = []
     for row in sheet.iter_rows(min_row=2, values_only=True):
-        number, title, artist, language, is_christmas, booklet = row
         songs.append({
-            "number": number,
-            "title": title,
-            "artist": artist,
-            "language": language,
-            "christmas": bool(is_christmas),
-            "booklet": str(booklet),
+            "number": row[0],
+            "title": row[1],
+            "artist": row[2],
+            "language": row[3],
+            "christmas": str(row[4]).strip().lower() in ["true", "1", "yes"],
+            "booklet": row[5],
+            "tempo": row[6],
         })
 
     # Exclude songs

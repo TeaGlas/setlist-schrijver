@@ -1,103 +1,173 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Liedjes Filter Koor Geen Gehoor</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <h1>Upload de liedjes</h1>
-    <form id="uploadForm">
-      <label>
-        Excel Bestand:
-        <input type="file" name="file" accept=".xlsx" required />
-      </label>
-      <br />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Song Picker</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 2rem; }
+    label, select, input { display: block; margin-bottom: 1rem; }
+    table { border-collapse: collapse; margin-top: 2rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>🎵 Song Picker</h1>
 
-      <label>
-        Aantal liedjes in totaal:
-        <input type="number" name="total_count" min="1" required />
-      </label>
-      <br />
+  <input type="file" id="excelFile" accept=".xlsx" />
 
-      <label>
-        Minimum aantal Nederlandse liedjes (optioneel):
-        <input type="number" name="min_dutch" min="0" />
-      </label>
-      <br />
+  <label>Total songs to pick:
+    <input type="number" id="totalSongs" min="1" required />
+  </label>
 
-      <label>
-        Minimum aantal Engelse liedjes (optioneel):
-        <input type="number" name="min_english" min="0" />
-      </label>
-      <br />
+  <label>Minimum Dutch songs:
+    <input type="number" id="minDutch" min="0" value="0" />
+  </label>
 
-      <label>
-        Minimum aantal Duitse liedjes (optioneel):
-        <input type="number" name="min_german" min="0" />
-      </label>
-      <br />
+  <label>Minimum German songs:
+    <input type="number" id="minGerman" min="0" value="0" />
+  </label>
 
-      <label>
-        Kerstliedjes?
-        <select name="include_christmas">
-          <option value="any">Alleen maar</option>
-          <option value="yes">Ja</option>
-          <option value="no">Nee</option>
-        </select>
-      </label>
-      <br />
+  <label>Minimum English songs:
+    <input type="number" id="minEnglish" min="0" value="0" />
+  </label>
 
-      <label>
-        Aantal Kerstliedjes? (optioneel):
-        <input type="number" name="num_christmas" min="0" />
-      </label>
-      <br />
+  <label>Include Christmas songs?
+    <select id="includeChristmas">
+      <option value="true" selected>Yes</option>
+      <option value="false">No</option>
+    </select>
+  </label>
 
-      <label>
-        Boekjes:
-        <select id="booklet_mode" name="booklet_mode">
-          <option value="any">Maakt niet uit (random)</option>
-          <option value="only">Alleen uit een specifiek boekje</option>
-          <option value="each">
-            Specifiek aantal liedjes uit alle boekjes
-          </option>
-        </select>
-      </label>
-      <br />
+  <label>How many Christmas songs?
+    <input type="number" id="christmasCount" min="0" value="0" />
+  </label>
 
-      <div id="booklet_only_input" style="display: none">
-        <label>
-          Nummer boekje:
-          <input type="text" name="only_booklet" placeholder="bijv. 5" />
-        </label>
-      </div>
+  <label>Booklet preference:
+    <select id="bookletOption">
+      <option value="any" selected>Any booklet</option>
+      <option value="one-from-each">One song from each booklet</option>
+      <option value="only">Only from one booklet (enter below)</option>
+    </select>
+    <input type="number" id="onlyBooklet" placeholder="Enter booklet number" style="display: none;" />
+  </label>
 
-      <div id="booklet_each_input" style="display: none">
-        <label>
-          Aantal liedjes per boekje:
-          <input type="number" name="each_booklet_count" min="1" />
-        </label>
-      </div>
-      <br />
+  <button id="generate">Generate Songs</button>
 
-      <label>
-        Deze liedjes niet meenemen (gescheiden met een komma):
-        <input
-          type="text"
-          name="exclude_numbers"
-          placeholder="bijv. 3, 15, 22"
-        />
-      </label>
-      <br />
+  <div id="output"></div>
 
-      <button type="submit">Submit</button>
-    </form>
+  <script>
+    function parseExcel(file, callback) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+        callback(json);
+      };
+      reader.readAsArrayBuffer(file);
+    }
 
-    <h2>Geselecteerde liedjes:</h2>
-    <ul id="results"></ul>
+    function pickNSongs(songs, n) {
+      const copy = [...songs];
+      const picked = [];
+      while (n-- > 0 && copy.length) {
+        const i = Math.floor(Math.random() * copy.length);
+        picked.push(copy.splice(i, 1)[0]);
+      }
+      return [picked, copy];
+    }
 
-    <script src="script.js"></script>
-  </body>
+    document.getElementById('bookletOption').addEventListener('change', (e) => {
+      document.getElementById('onlyBooklet').style.display = e.target.value === 'only' ? 'block' : 'none';
+    });
+
+    document.getElementById('generate').addEventListener('click', () => {
+      const fileInput = document.getElementById('excelFile');
+      if (!fileInput.files.length) return alert("Please upload an Excel file");
+
+      parseExcel(fileInput.files[0], (songs) => {
+        const totalSongs = parseInt(document.getElementById('totalSongs').value);
+        const minDutch = parseInt(document.getElementById('minDutch').value);
+        const minGerman = parseInt(document.getElementById('minGerman').value);
+        const minEnglish = parseInt(document.getElementById('minEnglish').value);
+        const includeChristmas = document.getElementById('includeChristmas').value === 'true';
+        const christmasCount = parseInt(document.getElementById('christmasCount').value);
+        const bookletOption = document.getElementById('bookletOption').value;
+        const onlyBooklet = document.getElementById('onlyBooklet').value;
+
+        let pool = songs.map(s => ({
+          number: s["Number"],
+          title: s["Title"],
+          artist: s["Artist"],
+          language: s["Language"],
+          christmas: ["true", "yes", "1"].includes((s["IsChristmas"] + '').toLowerCase()),
+          booklet: s["Booklet"],
+          tempo: s["Tempo"]
+        }));
+
+        const result = [];
+
+        function popLanguage(lang, min) {
+          const filtered = pool.filter(s => s.language.toLowerCase() === lang.toLowerCase());
+          const [picked, remaining] = pickNSongs(filtered, min);
+          result.push(...picked);
+          pool = pool.filter(s => !picked.includes(s));
+        }
+
+        popLanguage("Dutch", minDutch);
+        popLanguage("German", minGerman);
+        popLanguage("English", minEnglish);
+
+        if (!includeChristmas) pool = pool.filter(s => !s.christmas);
+        if (includeChristmas && christmasCount > 0) {
+          const christmasSongs = pool.filter(s => s.christmas);
+          const [picked] = pickNSongs(christmasSongs, christmasCount);
+          result.push(...picked);
+          pool = pool.filter(s => !picked.includes(s));
+        }
+
+        if (bookletOption === 'only') {
+          pool = pool.filter(s => String(s.booklet) === onlyBooklet);
+        } else if (bookletOption === 'one-from-each') {
+          const all = Array.from(new Set(pool.map(s => s.booklet)));
+          all.forEach(b => {
+            const fromB = pool.filter(s => s.booklet === b);
+            const [picked] = pickNSongs(fromB, 1);
+            result.push(...picked);
+            pool = pool.filter(s => !picked.includes(s));
+          });
+        }
+
+        const remaining = totalSongs - result.length;
+        if (remaining > 0) {
+          const [filler] = pickNSongs(pool, remaining);
+          result.push(...filler);
+        }
+
+        const output = document.getElementById('output');
+        if (!result.length) {
+          output.innerHTML = '<p>No songs could be selected with given filters.</p>';
+          return;
+        }
+
+        output.innerHTML = '<h2>Selected Songs:</h2>';
+        const table = document.createElement('table');
+        table.innerHTML = `<tr><th>Number</th><th>Title</th><th>Artist</th><th>Language</th><th>Christmas</th><th>Booklet</th><th>Tempo</th></tr>` +
+          result.map(s => `<tr>
+            <td>${s.number}</td>
+            <td>${s.title}</td>
+            <td>${s.artist}</td>
+            <td>${s.language}</td>
+            <td>${s.christmas ? '🎄' : ''}</td>
+            <td>${s.booklet}</td>
+            <td>${s.tempo}</td>
+          </tr>`).join('');
+        output.appendChild(table);
+      });
+    });
+  </script>
+</body>
 </html>

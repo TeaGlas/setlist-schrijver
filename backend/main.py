@@ -51,7 +51,6 @@ async def generate_songs(
             "language": row[3],
             "christmas": str(row[4]).strip().lower() in ["true", "1", "yes"],
             "booklet": row[5],
-            "tempo": row[6],
         })
 
     # Exclude songs

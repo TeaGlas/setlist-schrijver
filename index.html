@@ -104,127 +104,127 @@
     <div id="results"></div>
 
     <script>
-  document.getElementById("include_christmas").addEventListener("change", (e) => {
-    document.getElementById("christmas_count_input").style.display =
-      e.target.value === "yes" ? "block" : "none";
-  });
-
-  document.querySelector("select[name='booklet_option']").addEventListener("change", (e) => {
-    const value = e.target.value;
-    document.getElementById("booklet_only_input").style.display =
-      value === "one-booklet" ? "block" : "none";
-    document.getElementById("booklet_each_input").style.display =
-      value === "each" ? "block" : "none";
-  });
-
-  document.getElementById("songForm").addEventListener("submit", async function (e) {
-    e.preventDefault();
-
-    const file = document.getElementById("fileInput").files[0];
-    const data = await file.arrayBuffer();
-    const workbook = XLSX.read(data);
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(sheet);
-
-    const form = new FormData(e.target);
-    const total_songs = parseInt(form.get("total_songs"));
-    const min_dutch = parseInt(form.get("min_dutch"));
-    const min_english = parseInt(form.get("min_english"));
-    const min_german = parseInt(form.get("min_german"));
-    const include_christmas = form.get("include_christmas") === "yes";
-    const christmas_count = include_christmas ? parseInt(form.get("christmas_count") || "0") : 0;
-    const booklet_option = form.get("booklet_option");
-    const only_booklet_count = parseInt(form.get("only_booklet_count") || "0");
-    const each_booklet_count = parseInt(form.get("each_booklet_count") || "0");
-    const exclude_numbers = (form.get("exclude_numbers") || "")
-      .split(",")
-      .map((x) => parseInt(x.trim()))
-      .filter((x) => !isNaN(x));
-
-    let songs = rows.map((row) => ({
-      number: row["Number"],
-      title: row["Title"],
-      artist: row["Artist"],
-      language: (row["Language"] + "").toLowerCase(), // 👈 hoofdletteronafhankelijk
-      christmas: (row["IsChristmas"] + "").toLowerCase() === "true",
-      booklet: row["Booklet"]
-    }));
-
-    songs = songs.filter((s) => !exclude_numbers.includes(s.number));
-
-    function popRandomBy(filterFn, n) {
-      const matching = songs.filter(filterFn);
-      const picked = matching.sort(() => 0.5 - Math.random()).slice(0, n);
-      songs = songs.filter((s) => !picked.includes(s));
-      return picked;
-    }
-
-    let result = [];
-
-    const availableDutch = songs.filter((s) => s.language === "dutch");
-    if (availableDutch.length < min_dutch) {
-      alert(`Er zijn maar ${availableDutch.length} Nederlandse liedjes, je vroeg er ${min_dutch}.`);
-    }
-    result = result.concat(popRandomBy((s) => s.language === "dutch", min_dutch));
-
-    const availableEnglish = songs.filter((s) => s.language === "english");
-    if (availableEnglish.length < min_english) {
-      alert(`Er zijn maar ${availableEnglish.length} Engelse liedjes, je vroeg er ${min_english}.`);
-    }
-    result = result.concat(popRandomBy((s) => s.language === "english", min_english));
-
-    const availableGerman = songs.filter((s) => s.language === "german");
-    if (availableGerman.length < min_german) {
-      alert(`Er zijn maar ${availableGerman.length} Duitse liedjes, je vroeg er ${min_german}.`);
-    }
-    result = result.concat(popRandomBy((s) => s.language === "german", min_german));
-
-    if (include_christmas && christmas_count > 0) {
-      const availableChristmas = songs.filter((s) => s.christmas);
-      if (availableChristmas.length < christmas_count) {
-        alert(`Er zijn maar ${availableChristmas.length} kerstliedjes, je vroeg er ${christmas_count}.`);
-      }
-      result = result.concat(popRandomBy((s) => s.christmas, christmas_count));
-    } else {
-      songs = songs.filter((s) => !s.christmas);
-    }
-
-    if (booklet_option === "one-booklet" && only_booklet_count) {
-      const target_booklet = form.get("only_booklet_count");
-      const options = songs.filter((s) => s.booklet == target_booklet);
-      const picked = options.sort(() => 0.5 - Math.random()).slice(0, only_booklet_count);
-      result = result.concat(picked);
-      songs = songs.filter((s) => !picked.includes(s));
-    } else if (booklet_option === "each" && each_booklet_count > 0) {
-      const booklets = [...new Set(songs.map((s) => s.booklet))];
-      for (let b of booklets) {
-        const options = songs.filter((s) => s.booklet === b);
-        const picked = options.sort(() => 0.5 - Math.random()).slice(0, each_booklet_count);
-        result.push(...picked);
-        songs = songs.filter((s) => !picked.includes(s));
-      }
-    }
-
-    const remaining = total_songs - result.length;
-    if (remaining > 0) {
-      result = result.concat(songs.sort(() => 0.5 - Math.random()).slice(0, remaining));
-    }
-
-    const table = `
-      <h2>Resultaat (${result.length} liedjes)</h2>
-      <table>
-        <tr>
-          <th>#</th><th>Titel</th><th>Artiest</th><th>Taal</th><th>Kerst</th><th>Boekje</th>
-        </tr>
-        ${result
-          .map(
-            (s) =>
-              `<tr><td>${s.number}</td><td>${s.title}</td><td>${s.artist}</td><td>${s.language}</td><td>${s.christmas ? "🎄" : ""}</td><td>${s.booklet}</td></tr>`
-          )
-          .join("")}
-      </table>`;
-    document.getElementById("results").innerHTML = table;
-  });
-</script>
+      document.getElementById("include_christmas").addEventListener("change", (e) => {
+        document.getElementById("christmas_count_input").style.display =
+          e.target.value === "yes" ? "block" : "none";
+      });
+    
+      document.querySelector("select[name='booklet_option']").addEventListener("change", (e) => {
+        const value = e.target.value;
+        document.getElementById("booklet_only_input").style.display =
+          value === "one-booklet" ? "block" : "none";
+        document.getElementById("booklet_each_input").style.display =
+          value === "each" ? "block" : "none";
+      });
+    
+      document.getElementById("songForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+    
+        const file = document.getElementById("fileInput").files[0];
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data);
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet);
+    
+        const form = new FormData(e.target);
+        const total_songs = parseInt(form.get("total_songs"));
+        const min_dutch = parseInt(form.get("min_dutch"));
+        const min_english = parseInt(form.get("min_english"));
+        const min_german = parseInt(form.get("min_german"));
+        const include_christmas = form.get("include_christmas") === "yes";
+        const christmas_count = include_christmas ? parseInt(form.get("christmas_count") || "0") : 0;
+        const booklet_option = form.get("booklet_option");
+        const only_booklet_count = parseInt(form.get("only_booklet_count") || "0");
+        const each_booklet_count = parseInt(form.get("each_booklet_count") || "0");
+        const exclude_numbers = (form.get("exclude_numbers") || "")
+          .split(",")
+          .map((x) => parseInt(x.trim()))
+          .filter((x) => !isNaN(x));
+    
+        let songs = rows.map((row) => ({
+          number: row["Number"],
+          title: row["Title"],
+          artist: row["Artist"],
+          language: (row["Language"] + "").toLowerCase(), // 👈 hoofdletteronafhankelijk
+          christmas: (row["IsChristmas"] + "").toLowerCase() === "true",
+          booklet: row["Booklet"]
+        }));
+    
+        songs = songs.filter((s) => !exclude_numbers.includes(s.number));
+    
+        function popRandomBy(filterFn, n) {
+          const matching = songs.filter(filterFn);
+          const picked = matching.sort(() => 0.5 - Math.random()).slice(0, n);
+          songs = songs.filter((s) => !picked.includes(s));
+          return picked;
+        }
+    
+        let result = [];
+    
+        const availableDutch = songs.filter((s) => s.language === "dutch");
+        if (availableDutch.length < min_dutch) {
+          alert(`Er zijn maar ${availableDutch.length} Nederlandse liedjes, je vroeg er ${min_dutch}.`);
+        }
+        result = result.concat(popRandomBy((s) => s.language === "dutch", min_dutch));
+    
+        const availableEnglish = songs.filter((s) => s.language === "english");
+        if (availableEnglish.length < min_english) {
+          alert(`Er zijn maar ${availableEnglish.length} Engelse liedjes, je vroeg er ${min_english}.`);
+        }
+        result = result.concat(popRandomBy((s) => s.language === "english", min_english));
+    
+        const availableGerman = songs.filter((s) => s.language === "german");
+        if (availableGerman.length < min_german) {
+          alert(`Er zijn maar ${availableGerman.length} Duitse liedjes, je vroeg er ${min_german}.`);
+        }
+        result = result.concat(popRandomBy((s) => s.language === "german", min_german));
+    
+        if (include_christmas && christmas_count > 0) {
+          const availableChristmas = songs.filter((s) => s.christmas);
+          if (availableChristmas.length < christmas_count) {
+            alert(`Er zijn maar ${availableChristmas.length} kerstliedjes, je vroeg er ${christmas_count}.`);
+          }
+          result = result.concat(popRandomBy((s) => s.christmas, christmas_count));
+        } else {
+          songs = songs.filter((s) => !s.christmas);
+        }
+    
+        if (booklet_option === "one-booklet" && only_booklet_count) {
+          const target_booklet = form.get("only_booklet_count");
+          const options = songs.filter((s) => s.booklet == target_booklet);
+          const picked = options.sort(() => 0.5 - Math.random()).slice(0, only_booklet_count);
+          result = result.concat(picked);
+          songs = songs.filter((s) => !picked.includes(s));
+        } else if (booklet_option === "each" && each_booklet_count > 0) {
+          const booklets = [...new Set(songs.map((s) => s.booklet))];
+          for (let b of booklets) {
+            const options = songs.filter((s) => s.booklet === b);
+            const picked = options.sort(() => 0.5 - Math.random()).slice(0, each_booklet_count);
+            result.push(...picked);
+            songs = songs.filter((s) => !picked.includes(s));
+          }
+        }
+    
+        const remaining = total_songs - result.length;
+        if (remaining > 0) {
+          result = result.concat(songs.sort(() => 0.5 - Math.random()).slice(0, remaining));
+        }
+    
+        const table = `
+          <h2>Resultaat (${result.length} liedjes)</h2>
+          <table>
+            <tr>
+              <th>#</th><th>Titel</th><th>Artiest</th><th>Taal</th><th>Kerst</th><th>Boekje</th>
+            </tr>
+            ${result
+              .map(
+                (s) =>
+                  `<tr><td>${s.number}</td><td>${s.title}</td><td>${s.artist}</td><td>${s.language}</td><td>${s.christmas ? "🎄" : ""}</td><td>${s.booklet}</td></tr>`
+              )
+              .join("")}
+          </table>`;
+        document.getElementById("results").innerHTML = table;
+      });
+    </script>
   </body>
 </html>

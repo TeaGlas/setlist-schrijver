@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Song Picker</title>
+  <title>Liedjes Kiezer</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body { font-family: sans-serif; margin: 2rem; }
@@ -13,47 +13,47 @@
   </style>
 </head>
 <body>
-  <h1>🎵 Song Picker</h1>
+  <h1>🎵 Liedjes Kiezer</h1>
 
   <input type="file" id="excelFile" accept=".xlsx" />
 
-  <label>Total songs to pick:
+  <label>Aantal liedjes:
     <input type="number" id="totalSongs" min="1" required />
   </label>
 
-  <label>Minimum Dutch songs:
+  <label>Minimum aantal Nederlandse liedjes:
     <input type="number" id="minDutch" min="0" value="0" />
   </label>
 
-  <label>Minimum German songs:
-    <input type="number" id="minGerman" min="0" value="0" />
-  </label>
-
-  <label>Minimum English songs:
+  <label>Minimum aantal Engelse liedjes:
     <input type="number" id="minEnglish" min="0" value="0" />
   </label>
 
-  <label>Include Christmas songs?
+  <label>Minimum aantal Duitse liedjes:
+    <input type="number" id="minGerman" min="0" value="0" />
+  </label>
+
+  <label>Kerstliedjes?
     <select id="includeChristmas">
-      <option value="true" selected>Yes</option>
-      <option value="false">No</option>
+      <option value="true" selected>Ja</option>
+      <option value="false">Nee</option>
     </select>
   </label>
 
-  <label>How many Christmas songs?
-    <input type="number" id="christmasCount" min="0" value="0" />
+  <label>Hoeveel Kerstliedjes?
+    <input type="number" id="christmasCount" style="display: none;" />
   </label>
 
-  <label>Booklet preference:
+  <label>Voorkeur voor boekje:
     <select id="bookletOption">
-      <option value="any" selected>Any booklet</option>
-      <option value="one-from-each">One song from each booklet</option>
-      <option value="only">Only from one booklet (enter below)</option>
+      <option value="any" selected>Maakt niet uit</option>
+      <option value="one-from-each">Een liedje van elk boekje</option>
+      <option value="only">Alleen van dit boekje (Vul hieronder in)</option>
     </select>
-    <input type="number" id="onlyBooklet" placeholder="Enter booklet number" style="display: none;" />
+    <input type="number" id="onlyBooklet" placeholder="bijv. 1" style="display: none;" />
   </label>
 
-  <button id="generate">Generate Songs</button>
+  <button id="generate">Genereer lijst</button>
 
   <div id="output"></div>
 
@@ -84,9 +84,13 @@
       document.getElementById('onlyBooklet').style.display = e.target.value === 'only' ? 'block' : 'none';
     });
 
+    document.getElementById('includeChristmas').addEventListener('change', (e) => {
+      document.getElementById('christmasCount').style.display = e.target.value === 'only' ? 'block' : 'none';
+    });
+
     document.getElementById('generate').addEventListener('click', () => {
       const fileInput = document.getElementById('excelFile');
-      if (!fileInput.files.length) return alert("Please upload an Excel file");
+      if (!fileInput.files.length) return alert("Upload een Excel document");
 
       parseExcel(fileInput.files[0], (songs) => {
         const totalSongs = parseInt(document.getElementById('totalSongs').value);
@@ -105,7 +109,6 @@
           language: s["Language"],
           christmas: ["true", "yes", "1"].includes((s["IsChristmas"] + '').toLowerCase()),
           booklet: s["Booklet"],
-          tempo: s["Tempo"]
         }));
 
         const result = [];
@@ -118,8 +121,8 @@
         }
 
         popLanguage("Dutch", minDutch);
-        popLanguage("German", minGerman);
         popLanguage("English", minEnglish);
+        popLanguage("German", minGerman);
 
         if (!includeChristmas) pool = pool.filter(s => !s.christmas);
         if (includeChristmas && christmasCount > 0) {
@@ -149,13 +152,13 @@
 
         const output = document.getElementById('output');
         if (!result.length) {
-          output.innerHTML = '<p>No songs could be selected with given filters.</p>';
+          output.innerHTML = '<p>Er konden geen liedjes geselecteerd worden met deze filters.</p>';
           return;
         }
 
         output.innerHTML = '<h2>Selected Songs:</h2>';
         const table = document.createElement('table');
-        table.innerHTML = `<tr><th>Number</th><th>Title</th><th>Artist</th><th>Language</th><th>Christmas</th><th>Booklet</th><th>Tempo</th></tr>` +
+        table.innerHTML = `<tr><th>Number</th><th>Title</th><th>Artist</th><th>Language</th><th>Christmas</th><th>Booklet</th></tr>` +
           result.map(s => `<tr>
             <td>${s.number}</td>
             <td>${s.title}</td>
@@ -163,7 +166,6 @@
             <td>${s.language}</td>
             <td>${s.christmas ? '🎄' : ''}</td>
             <td>${s.booklet}</td>
-            <td>${s.tempo}</td>
           </tr>`).join('');
         output.appendChild(table);
       });

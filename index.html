@@ -70,10 +70,16 @@
         Boekoptie:
         <select name="booklet_option">
           <option value="any">Maakt niet uit</option>
-          <option value="one-from-each">Eén per boekje</option>
+          <option value="one-booklet">Alleen uit specifiek boekje</option>
           <option value="each">Aantal per boekje (zie hieronder)</option>
         </select>
       </label>
+
+      <div id="booklet_only_input" style="display: none">
+        <label>
+          Nummer boekje:
+          <input type="number" name="only_booklet_count" min="1" />
+        </label>
 
       <div id="booklet_each_input" style="display: none">
         <label>
@@ -103,6 +109,11 @@
       });
 
       document.querySelector("select[name='booklet_option']").addEventListener("change", (e) => {
+        document.getElementById("booklet_only_input").style.display =
+          e.target.value === "one_booklet" ? "block" : "none";
+      });
+
+      document.querySelector("select[name='booklet_option']").addEventListener("change", (e) => {
         document.getElementById("booklet_each_input").style.display =
           e.target.value === "each" ? "block" : "none";
       });
@@ -124,6 +135,7 @@
         const include_christmas = form.get("include_christmas") === "yes";
         const christmas_count = include_christmas ? parseInt(form.get("christmas_count") || "0") : 0;
         const booklet_option = form.get("booklet_option");
+        const only_booklet_count = parseInt(form.get("only_booklet_count") || "0");
         const each_booklet_count = parseInt(form.get("each_booklet_count") || "0");
         const exclude_numbers = (form.get("exclude_numbers") || "")
           .split(",")
@@ -160,25 +172,22 @@
           songs = songs.filter((s) => !s.christmas);
         }
 
-        if (booklet_option === "one-from-each") {
-          const booklets = [...new Set(songs.map((s) => s.booklet))];
-          for (let b of booklets) {
-            const options = songs.filter((s) => s.booklet === b);
-            if (options.length) {
-              const chosen = options[Math.floor(Math.random() * options.length)];
-              result.push(chosen);
-              songs = songs.filter((s) => s !== chosen);
+        if (booklet_option === "one-booklet" && only_booklet_count) {
+          const target_booklet = form.get("only_booklet_count");
+          const options = songs.filter((s) => s.booklet == target_booklet); // los van string/number
+
+          const picked = options.sort(() => 0.5 - Math.random()).slice(0, only_booklet_count);
+          result = result.concat(picked);
+          songs = songs.filter((s) => !picked.includes(s));
+        } else if (booklet_option === "each" && each_booklet_count > 0) {
+            const booklets = [...new Set(songs.map((s) => s.booklet))];
+            for (let b of booklets) {
+              const options = songs.filter((s) => s.booklet === b);
+              const picked = options.sort(() => 0.5 - Math.random()).slice(0, each_booklet_count);
+              result.push(...picked);
+              songs = songs.filter((s) => !picked.includes(s));
             }
           }
-        } else if (booklet_option === "each" && each_booklet_count > 0) {
-          const booklets = [...new Set(songs.map((s) => s.booklet))];
-          for (let b of booklets) {
-            const options = songs.filter((s) => s.booklet === b);
-            const picked = options.sort(() => 0.5 - Math.random()).slice(0, each_booklet_count);
-            result.push(...picked);
-            songs = songs.filter((s) => !picked.includes(s));
-          }
-        }
 
         const remaining = total_songs - result.length;
         if (remaining > 0) {

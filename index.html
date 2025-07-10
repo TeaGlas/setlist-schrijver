@@ -25,10 +25,10 @@
   </head>
   <body>
     <h1>Liedjeskiezer</h1>
-    <form id="songForm">
+    <form id="song_form">
       <label>
         Upload je Excelbestand:
-        <input type="file" id="fileInput" accept=".xlsx" required />
+        <input type="file" id="file_input" accept=".xlsx" required />
       </label>
 
       <label>
@@ -70,7 +70,7 @@
         Boekoptie:
         <select name="booklet_option">
           <option value="any">Maakt niet uit</option>
-          <option value="one-booklet">Alleen uit specifiek boekje</option>
+          <option value="one_booklet">Alleen uit specifiek boekje</option>
           <option value="each">Aantal per boekje (zie hieronder)</option>
         </select>
       </label>
@@ -80,6 +80,7 @@
           Nummer boekje:
           <input type="number" name="only_booklet_count" min="1" />
         </label>
+      </div>
 
       <div id="booklet_each_input" style="display: none">
         <label>
@@ -118,10 +119,10 @@
           e.target.value === "each" ? "block" : "none";
       });
 
-      document.getElementById("songForm").addEventListener("submit", async function (e) {
+      document.getElementById("song_form").addEventListener("submit", async function (e) {
         e.preventDefault();
 
-        const file = document.getElementById("fileInput").files[0];
+        const file = document.getElementById("file_input").files[0];
         const data = await file.arrayBuffer();
         const workbook = XLSX.read(data);
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -172,7 +173,7 @@
           songs = songs.filter((s) => !s.christmas);
         }
 
-        if (booklet_option === "one-booklet" && only_booklet_count) {
+        if (booklet_option === "one_booklet" && only_booklet_count) {
           const target_booklet = form.get("only_booklet_count");
           const options = songs.filter((s) => s.booklet == target_booklet); // los van string/number
 

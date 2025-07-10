@@ -112,15 +112,15 @@
       document.querySelector("select[name='booklet_option']").addEventListener("change", (e) => {
         const value = e.target.value;
         document.getElementById("booklet_only_input").style.display =
-          value === "one-booklet" ? "block" : "none";
+          value === "one_booklet" ? "block" : "none";
         document.getElementById("booklet_each_input").style.display =
           value === "each" ? "block" : "none";
       });
     
-      document.getElementById("songForm").addEventListener("submit", async function (e) {
+      document.getElementById("song_form").addEventListener("submit", async function (e) {
         e.preventDefault();
     
-        const file = document.getElementById("fileInput").files[0];
+        const file = document.getElementById("file_input").files[0];
         const data = await file.arrayBuffer();
         const workbook = XLSX.read(data);
         const sheet = workbook.Sheets[workbook.SheetNames[0]];

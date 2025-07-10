@@ -11,7 +11,7 @@ document.getElementById("uploadForm").addEventListener("submit", async (e) => {
   const form = e.target;
   const data = new FormData(form);
 
-  const res = await fetch("https://99b74831-5b3f-478e-a71a-7db109b7e528-00-1u7g7so2ddh1f.janeway.replit.dev/generate", {
+  const res = await fetch("https://song-selection.onrender.com/generate", {
     method: "POST",
     body: data,
   });

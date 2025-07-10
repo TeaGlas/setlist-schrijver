@@ -15,7 +15,7 @@ def read_root():
 app.add_middleware(
     CORSMiddleware,
     # Set specific domain in production!
-    allow_origins=["https://teaglas.github.io/song-selection/"],
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )

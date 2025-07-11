@@ -26,7 +26,7 @@
   </head>
 
   <body>
-    <nav class="navbar bg-body-tertiary navbar-custom">
+    <nav class="navbar bg-body-tertiary navbar-custom fixed-top">
       <div class="container-fluid">
         <a class="navbar-brand" href="#">
           <img src="./assets/logo.svg" />
@@ -35,22 +35,22 @@
       </div>
     </nav>
 
-    <div class="intro-text">
-      <h1 class="intro-text-header">Setlist Schrijver</h1>
-      <p class="intro-text-text">
-        Het gebruik van deze tool is simpel. Het enige wat je nodig hebt is een
-        excel bestand met op de eerste rij de kolomnamen: <b>Number</b>,
-        <b>Title</b>, <b>Artist</b>, <b>Language</b>, <b>IsChristmas</b> en
-        <b>Booklet</b>. Onder Number en Booklet moeten nummers staan en voor nu
-        is bij Language enkel de keuze uit: <b>english</b>, <b>dutch</b> en
-        <b>german</b>. Tot slot moet IsChristmas worden ingevuld met
-        <b>true</b> of <b>false</b>. Als je er niet uitkomt is er een
-        <a href="./assets/koorgeengehoor.xlsx" download>voorbeeld download</a>
-        waarin een lange lijst aan voorbeelden staat. Veel plezier!
-      </p>
-    </div>
-
     <div class="container">
+      <div class="intro-text row mb-3 align-items-center">
+        <h1 class="intro-text-header">Setlist Schrijver</h1>
+        <p class="intro-text-text">
+          Het gebruik van deze tool is simpel. Het enige wat je nodig hebt is
+          een excel bestand met op de eerste rij de kolomnamen: <b>Number</b>,
+          <b>Title</b>, <b>Artist</b>, <b>Language</b>, <b>IsChristmas</b> en
+          <b>Booklet</b>. Onder Number en Booklet moeten nummers staan en voor
+          nu is bij Language enkel de keuze uit: <b>english</b>, <b>dutch</b> en
+          <b>german</b>. Tot slot moet IsChristmas worden ingevuld met
+          <b>true</b> of <b>false</b>. Als je er niet uitkomt is er een
+          <a href="./assets/koorgeengehoor.xlsx" download>voorbeeld download</a>
+          waarin een lange lijst aan voorbeelden staat. Veel plezier!
+        </p>
+      </div>
+
       <form id="song_form">
         <div class="row mb-3 align-items-center">
           <label class="col-sm-4 col-form-label">Upload Excelbestand:</label>

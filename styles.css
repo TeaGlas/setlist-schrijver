@@ -6,6 +6,7 @@ html * {
 body {
   font-family: "TikTok Sans", sans-serif;
   margin: 2em;
+  padding-top: 5em;
 }
 
 label {

@@ -1,0 +1,75 @@
+/* Algemeen */
+html * {
+  font-family: "TikTok Sans", sans-serif;
+}
+
+body {
+  font-family: "TikTok Sans", sans-serif;
+  margin: 2em;
+}
+
+label {
+  display: block;
+  margin: 0.5em 0;
+  font-weight: bold;
+}
+
+/* Navbar */
+nav.navbar.navbar-custom {
+  background-color: #56a6b3 !important;
+}
+
+.navbar-brand {
+  color: white !important;
+}
+
+/* Buttons */
+#file_input {
+  display: none;
+}
+
+/* Aangepaste uploadknop */
+.custom-upload-button {
+  display: inline-block;
+  padding: 8px 10px;
+  background-color: #56a6b3;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.custom-upload-button:hover {
+  background-color: #4a8e98;
+}
+
+#file_name_display {
+  font-size: 0.9rem;
+  font-style: italic;
+  color: #555;
+}
+
+/* Resultaten */
+#results {
+  margin-top: 2em;
+}
+
+/* tabel */
+table,
+th,
+td {
+  border: 1px solid gray;
+  border-collapse: collapse;
+  padding: 0.4em;
+}
+
+th {
+  background-color: #56a6b3;
+  color: white;
+}
+
+tr:nth-child(even) {
+  background-color: #e7e9eb;
+}

@@ -32,18 +32,18 @@ nav.navbar.navbar-custom {
 /* Aangepaste uploadknop */
 .custom-upload-button {
   display: inline-block;
-  padding: 8px 10px;
-  background-color: #56a6b3;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-  margin-right: 10px;
+  padding: 8px 10px !important;
+  background-color: #56a6b3 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 5px !important;
+  cursor: pointer !important;
+  font-weight: bold !important;
+  margin-right: 10px !important;
 }
 
 .custom-upload-button:hover {
-  background-color: #4a8e98;
+  background-color: #4a8e98 !important;
 }
 
 #file_name_display {

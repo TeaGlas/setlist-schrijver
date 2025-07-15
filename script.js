@@ -159,8 +159,6 @@ document.addEventListener("DOMContentLoaded", () => {
         <td>${s.number}</td>
         <td>${s.title}</td>
         <td>${s.artist}</td>
-        <td>${s.language}</td>
-        <td>${s.christmas ? "🎄" : ""}</td>
         <td>${s.booklet}</td>
       </tr>`
       )

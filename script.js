@@ -150,7 +150,7 @@ document.addEventListener("DOMContentLoaded", () => {
   <h2>Resultaat (${result.length} liedjes)</h2>
   <table>
     <tr>
-      <th>#</th><th>Titel</th><th>Artiest</th><th>Taal</th><th>Kerst</th><th>Boekje</th>
+      <th>#</th><th>Titel</th><th>Artiest</th><th>Boekje</th>
     </tr>
     ${result
       .map(

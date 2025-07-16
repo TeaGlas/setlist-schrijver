@@ -1,11 +1,15 @@
+// Kijk of een 
+// Wacht tot het document klaar is
 document.addEventListener("DOMContentLoaded", () => {
+  // Bestand kiezen en bestandsnaam tonen
   const fileInput = document.getElementById("file_input");
   const fileNameDisplay = document.getElementById("file_name_display");
   fileInput.addEventListener("change", () => {
     const file = fileInput.files[0];
-    fileNameDisplay.textContent = file ? file.name : "Nog geen bestand gekozen";
+    fileNameDisplay.textContent = file ? file.name : "Nog geen bestand gekozen"; // Tekst veranderen naar file naam als die is gekozen
   });
 
+  // Toon invoerveld voor kerstliedjesaantal als 'ja' gekozen is
   document
     .getElementById("include_christmas")
     .addEventListener("change", (e) => {
@@ -15,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
       christmasInputRow.classList.toggle("d-none", e.target.value !== "yes");
     });
 
+  // Toon extra invoerveld afhankelijk van geselecteerde boekjesoptie
   const bookletSelect = document.querySelector("select[name='booklet_option']");
   bookletSelect.addEventListener("change", (e) => {
     const bookletOnlyRow = document.getElementById("booklet_only_input");
@@ -26,19 +31,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.target.value === "each") bookletEachRow.classList.remove("d-none");
   });
 
+  // Verwerk formulier en genereer selectie
   document.getElementById("song_form").addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const file = document.getElementById("file_input").files[0];
-    if (!file) return alert("Kies een Excel-bestand.");
-
+    // 1. Haal bestand op en lees Excel
+    const file = fileInput.files[0];
+    if (!file) return alert("Kies een Excel-bestand."); // Als file niet is geupload dan een alert
     const data = await file.arrayBuffer();
     const workbook = XLSX.read(data);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(sheet);
 
-    console.log("📥 Ingelezen rijen uit Excel:", rows);
-
+    // 2. Haal formuliervelden op
     const form = new FormData(e.target);
     const total_songs = parseInt(form.get("total_songs"));
     const minDutch = parseInt(form.get("min_dutch") || "0");
@@ -69,102 +74,100 @@ document.addEventListener("DOMContentLoaded", () => {
       excludeNumbers,
     });
 
+    // 3. Transformeer en filter Excel-gegevens
     const allSongs = rows
       .map((row) => ({
         number: row["Number"],
         title: row["Title"],
         artist: row["Artist"],
         language: (row["Language"] || "").toLowerCase(),
-        christmas: (row["IsChristmas"] + "").toLowerCase() === "true",
+        christmas: String(row["IsChristmas"]).toLowerCase() === "true",
         booklet: row["Booklet"],
       }))
       .filter((s) => !excludeNumbers.includes(s.number))
       .filter((s) => includeChristmas || !s.christmas)
-      .filter((s) =>
-        bookletOption === "one_booklet"
-          ? String(s.booklet) === String(onlyBookletNumber)
-          : true
+      .filter(
+        (s) =>
+          bookletOption !== "one_booklet" ||
+          String(s.booklet) === String(onlyBookletNumber)
       );
 
-    console.log("🎼 Beschikbare songs na filters:", allSongs.length);
-
+    // 4. Toon foutmelding bij mislukte selectie
     function showFail(reason = "") {
-      const resultContainer = document.getElementById("results");
-      resultContainer.innerHTML = `
-      <div style="color: red; font-weight: bold; padding: 1rem;">
-        ❌ Het is niet gelukt om ${total_songs} liedjes te selecteren die voldoen aan alle opgegeven eisen (taal, kerst, boekjes, uitsluitingen).<br>
-        ${reason ? "➤ " + reason + "<br>" : ""}
-        Probeer het opnieuw met ruimere eisen.
-      </div>`;
+      document.getElementById("results").innerHTML = `
+        <div style="color: red; font-weight: bold; padding: 1rem;">
+          ❌ Het is niet gelukt om ${total_songs} liedjes te selecteren die voldoen aan alle eisen.<br>
+          ${reason ? "➤ " + reason + "<br>" : ""}
+          Probeer het opnieuw met ruimere eisen.
+        </div>`;
     }
 
-    const resultContainer = document.getElementById("results");
-
+    // 5. Bepaal filterinstellingen
     const filters = {
       total_songs,
       minDutch,
       minEnglish,
       minGerman,
       includeChristmas,
+      christmasCount,
       minPerBooklet: bookletOption === "each" ? eachBookletCount : 0,
     };
 
-    const retryTimeoutMs = 3000; // 3 seconden, pas aan naar wens
-
+    // 6. Probeer selectie herhaaldelijk binnen tijdslimiet
+    const retryTimeoutMs = 3000;
     async function generate_songs_retry(allSongs, filters, timeoutMs) {
-      const startTime = Date.now();
-      let bestResult = null;
-      let bestMeets = false;
+      const startTime = Date.now(); // Starttijd van de poging
+      let bestResult = null; // Hier wordt de "beste poging tot nu toe" bewaard
 
       while (Date.now() - startTime < timeoutMs) {
+        // Genereer een selectie
         const { songs, meetsRequirements } = generate_songs(allSongs, filters);
-        if (meetsRequirements) {
-          return { songs, meetsRequirements };
-        }
-        // Bewaar beste resultaat als het beter is
-        if (!bestMeets) {
-          bestResult = songs;
-          bestMeets = meetsRequirements;
-        }
-        await new Promise((r) => setTimeout(r, 10)); // korte pauze om UI niet te blokkeren
+
+        // Als de selectie aan alle eisen voldoet, geef die direct terug
+        if (meetsRequirements) return { songs, meetsRequirements };
+
+        // Anders: kijk of dit beter is dan eerdere mislukte pogingen
+        if (!bestResult || songs.length > bestResult.length) bestResult = songs;
+
+        // Korte pauze om de browser niet te blokkeren
+        await new Promise((r) => setTimeout(r, 10));
       }
 
+      // Tijd is op: geef beste poging terug, met `meetsRequirements: false`
       return { songs: bestResult || [], meetsRequirements: false };
     }
 
+    // 7. Genereer selectie en toon resultaat
+    const resultContainer = document.getElementById("results");
     const { songs: result, meetsRequirements } = await generate_songs_retry(
       allSongs,
       filters,
       retryTimeoutMs
     );
 
-    if (!meetsRequirements) {
+    if (!meetsRequirements)
       return showFail(
-        "Niet alle eisen konden volledig worden gehaald, hier is het beste resultaat."
+        "Niet alle eisen konden worden gehaald. Hier is het best mogelijke resultaat."
       );
-    }
 
+    // Sorteer op nummer en toon in tabel
     result.sort((a, b) => a.number - b.number);
-
     resultContainer.innerHTML = `
-  <h2>Resultaat (${result.length} liedjes)</h2>
-  <table>
-    <tr>
-      <th>#</th><th>Titel</th><th>Artiest</th><th>Boekje</th>
-    </tr>
-    ${result
-      .map(
-        (s) => `
-      <tr>
-        <td>${s.number}</td>
-        <td>${s.title}</td>
-        <td>${s.artist}</td>
-        <td>${s.booklet}</td>
-      </tr>`
-      )
-      .join("")}
-  </table>`;
-    console.log("✅ Geselecteerde liedjes:", result);
+      <h2>Resultaat (${result.length} liedjes)</h2>
+      <table>
+        <tr><th>#</th><th>Titel</th><th>Artiest</th><th>Boekje</th></tr>
+        ${result
+          .map(
+            (s) => `
+          <tr>
+            <td>${s.number}</td>
+            <td>${s.title}</td>
+            <td>${s.artist}</td>
+            <td>${s.booklet}</td>
+          </tr>`
+          )
+          .join("")}
+      </table>`;
   });
 });
 
@@ -175,16 +178,18 @@ function generate_songs(allSongs, filters) {
     minEnglish,
     minGerman,
     includeChristmas,
+    christmasCount,
     minPerBooklet,
   } = filters;
+  let selected = []; // De uiteindelijk geselecteerde liedjes
+  let selectedNumbers = new Set(); // Houd bij welke nummers al gekozen zijn
 
-  let selected = [];
-  let selectedNumbers = new Set();
-
-  // Helper: selecteer N willekeurige unieke liedjes uit lijst
+  // Helperfunctie: selecteert N willekeurige unieke liedjes (geen duplicaten)
   function selectRandom(songs, n, alreadySelected) {
     const filtered = songs.filter((s) => !alreadySelected.has(s.number));
     if (filtered.length < n) return null;
+
+    // Fisher-Yates shuffle
     for (let i = filtered.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
@@ -192,85 +197,71 @@ function generate_songs(allSongs, filters) {
     return filtered.slice(0, n);
   }
 
-  // --- Selecteer minimumaantallen per taal en kerst
+  // Selecteer minimumaantallen per taal + kerst, stappen gedaan in prioriteit en schaarste
+  const steps = [
+    {
+      label: "german",
+      filter: (s) => s.language === "german",
+      count: minGerman,
+    },
+    {
+      label: "christmas",
+      filter: (s) => s.christmas,
+      count: includeChristmas ? christmasCount || 1 : 0, // Als Kerstliedjes er in moeten dan of de minimale hoeveelheid aangegeven OF minimaal 1, anders 0
+    },
+    { label: "dutch", filter: (s) => s.language === "dutch", count: minDutch },
+    {
+      label: "english",
+      filter: (s) => s.language === "english",
+      count: minEnglish,
+    },
+  ];
 
-  // Duits
-  const germanSongs = allSongs.filter((s) => s.language === "german");
-  const germanSelected = selectRandom(germanSongs, minGerman, selectedNumbers);
-  if (germanSelected) {
-    germanSelected.forEach((s) => {
-      selected.push(s);
-      selectedNumbers.add(s.number);
-    });
-  }
-
-  // Kerstliedjes
-  if (includeChristmas) {
-    const christmasSongs = allSongs.filter(
-      (s) => s.christmas && !selectedNumbers.has(s.number)
-    );
-    const minChristmas =
-      filters.christmasCount > 0 ? filters.christmasCount : 1;
-    const christmasSelected = selectRandom(
-      christmasSongs,
-      minChristmas,
-      selectedNumbers
-    );
-    if (christmasSelected) {
-      christmasSelected.forEach((s) => {
-        selected.push(s);
-        selectedNumbers.add(s.number);
-      });
+  // Kijk naar filters en minimale hoeveelheden per stap en voeg de uitkomsten toe aan selectedSongs
+  for (const { filter, count } of steps) {
+    if (count > 0) {
+      const selectedSongs = selectRandom(
+        allSongs.filter(filter),
+        count,
+        selectedNumbers
+      );
+      if (selectedSongs) {
+        selectedSongs.forEach((s) => {
+          selected.push(s);
+          selectedNumbers.add(s.number);
+        });
+      }
     }
   }
 
-  // Nederlands
-  const dutchSongs = allSongs.filter(
-    (s) => s.language === "dutch" && !selectedNumbers.has(s.number)
-  );
-  const dutchSelected = selectRandom(dutchSongs, minDutch, selectedNumbers);
-  if (dutchSelected) {
-    dutchSelected.forEach((s) => {
-      selected.push(s);
-      selectedNumbers.add(s.number);
-    });
-  }
+  // Boekjes: zorg dat elk boekje minimaal X liedjes heeft
+  const booklets = [...new Set(allSongs.map((s) => s.booklet))]; // Check hoeveel boekjes er zijn in Excel
 
-  // Engels
-  const englishSongs = allSongs.filter(
-    (s) => s.language === "english" && !selectedNumbers.has(s.number)
-  );
-  const englishSelected = selectRandom(
-    englishSongs,
-    minEnglish,
-    selectedNumbers
-  );
-  if (englishSelected) {
-    englishSelected.forEach((s) => {
-      selected.push(s);
-      selectedNumbers.add(s.number);
-    });
-  }
-
-  // --- Boekjes minimum per boekje
-  const booklets = [...new Set(allSongs.map((s) => s.booklet))];
-  if (filters.minPerBooklet > 0) {
+  // Check of er een minimum per boekje is
+  if (minPerBooklet > 0) {
     for (const booklet of booklets) {
+      // Voor elk boekje kijken of al liedjes in de selectie zitten van dit boekje
       const countInBooklet = selected.filter(
         (s) => s.booklet === booklet
       ).length;
-      const need = minPerBooklet - countInBooklet;
+
+      const need = minPerBooklet - countInBooklet; // Hoeveel heb je nodig per boekje en hoeveel heb je er al
       if (need > 0) {
+        // Als nog liedjes nodig zijn van het specifieke boekje
         const songsInBooklet = allSongs.filter(
-          (s) => s.booklet === booklet && !selectedNumbers.has(s.number)
+          (s) => s.booklet === booklet && !selectedNumbers.has(s.number) // Liedje selecteren die in het juiste boekje zit en nog niet geselecteerd is
         );
-        const selectedFromBooklet = selectRandom(
+
+        const selectedExtra = selectRandom(
+          // Random van overgebleven opties tot need is vervuld
           songsInBooklet,
           need,
           selectedNumbers
         );
-        if (selectedFromBooklet) {
-          selectedFromBooklet.forEach((s) => {
+
+        if (selectedExtra) {
+          // Gelukt met extra nummers? Dan toevoegen aan selectedNumbers
+          selectedExtra.forEach((s) => {
             selected.push(s);
             selectedNumbers.add(s.number);
           });
@@ -279,64 +270,49 @@ function generate_songs(allSongs, filters) {
     }
   }
 
-  // --- Nu selected bevat alle minimum eisen, controleer of dit al te veel is:
-
+  // Vul aan of snijd af tot exact `total_songs`
   if (selected.length > total_songs) {
-    // Te veel: we moeten liedjes verwijderen, maar niet onder minimums komen
-
-    // Bereken aantal per categorie
-    const counts = {
-      dutch: selected.filter((s) => s.language === "dutch").length,
-      english: selected.filter((s) => s.language === "english").length,
-      german: selected.filter((s) => s.language === "german").length,
-      christmas: selected.filter((s) => s.christmas).length,
-    };
-
-    // Probeer overbodige liedjes te verwijderen (eerst de extras buiten minimum)
-    // Dit is een complexe taak, hier simpel voorbeeld: gewoon afknippen, maar eerst sorteren op prioriteit
-
-    // Sorteer songs: prioriteit = min aantal items behouden, extras op het eind
-    // Dus verwijder eerst liedjes die niet nodig zijn voor minimum per taal, kerst, boekje
-
-    // Voor nu: knip gewoon af op total_songs (misschien verbeterbaar)
-
-    selected = selected.slice(0, total_songs);
+    selected = selected.slice(0, total_songs); // Simpel afknippen van extra nummers
   } else if (selected.length < total_songs) {
-    // Vul aan met willekeurige liedjes
-    const leftovers = allSongs.filter((s) => !selectedNumbers.has(s.number));
+    // Niet lang genoeg? Dan extra random nummers toevoegen die nog niet zijn geselecteerd
     const filler = selectRandom(
-      leftovers,
+      allSongs.filter((s) => !selectedNumbers.has(s.number)),
       total_songs - selected.length,
       selectedNumbers
     );
     if (filler) {
       filler.forEach((s) => {
+        // Voor elk nieuw geselecteerd nummer, toevoegen aan selectedNumbers
         selected.push(s);
         selectedNumbers.add(s.number);
       });
     }
   }
 
-  // --- Controleer of aan eisen voldaan is
+  // Controleer of selectie voldoet aan alle eisen
   const counts = {
+    // Maak van elke hoeveelheid van een taal een nummer
     dutch: selected.filter((s) => s.language === "dutch").length,
     english: selected.filter((s) => s.language === "english").length,
     german: selected.filter((s) => s.language === "german").length,
     christmas: selected.filter((s) => s.christmas).length,
   };
+
+  // Check of nummer groter is of gelijk aan het minimum nummer taal of kerst liedjes
   let meetsRequirements =
     counts.dutch >= minDutch &&
     counts.english >= minEnglish &&
     counts.german >= minGerman &&
-    (!includeChristmas ||
-      counts.christmas >=
-        (filters.christmasCount > 0 ? filters.christmasCount : 1));
+    (!includeChristmas || counts.christmas >= (christmasCount || 1));
 
-  for (const booklet of booklets) {
-    const countInBooklet = selected.filter((s) => s.booklet === booklet).length;
-    if (countInBooklet < minPerBooklet) {
-      meetsRequirements = false;
-      break;
+  if (minPerBooklet > 0) {
+    for (const booklet of booklets) {
+      if (
+        selected.filter((s) => s.booklet === booklet).length < minPerBooklet
+      ) {
+        meetsRequirements = false; // Niet meetsRequirements als niet per boekje het minimum wordt gehaald
+        break;
+      }
     }
   }
 

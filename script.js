@@ -1,5 +1,4 @@
-// Kijk of een 
-// Wacht tot het document klaar is
+ // Wacht tot het document klaar is
 document.addEventListener("DOMContentLoaded", () => {
   // Bestand kiezen en bestandsnaam tonen
   const fileInput = document.getElementById("file_input");

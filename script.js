@@ -154,15 +154,14 @@ document.addEventListener("DOMContentLoaded", () => {
     resultContainer.innerHTML = `
       <h2>Resultaat (${result.length} liedjes)</h2>
       <table>
-        <tr><th>#</th><th>Titel</th><th>Artiest</th><th>Boekje</th></tr>
+        <tr><th>Boekje</th><th>#</th><th>Titel</th></tr>
         ${result
           .map(
             (s) => `
           <tr>
+            <td>${s.booklet}</td>
             <td>${s.number}</td>
             <td>${s.title}</td>
-            <td>${s.artist}</td>
-            <td>${s.booklet}</td>
           </tr>`
           )
           .join("")}

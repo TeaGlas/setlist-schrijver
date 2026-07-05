@@ -17,7 +17,7 @@ label {
 
 /* Navbar */
 nav.navbar.navbar-custom {
-  background-color: #56a6b3 !important;
+  background-color: #FFBF00 !important;
 }
 
 .navbar-brand {
@@ -33,7 +33,7 @@ nav.navbar.navbar-custom {
 .custom-upload-button {
   display: inline-block;
   padding: 8px 10px !important;
-  background-color: #56a6b3 !important;
+  background-color: #FFBF00 !important;
   color: white !important;
   border: none !important;
   border-radius: 5px !important;
@@ -43,7 +43,7 @@ nav.navbar.navbar-custom {
 }
 
 .custom-upload-button:hover {
-  background-color: #4a8e98 !important;
+  background-color: #b08402 !important;
 }
 
 #file_name_display {
